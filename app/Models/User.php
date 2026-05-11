@@ -65,4 +65,15 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(PresensiDetail::class, 'siswa_id');
     }
+
+    public function riwayatKelasSiswas(): HasMany
+    {
+        return $this->hasMany(RiwayatKelasSiswa::class, 'siswa_id');
+    }
+
+    public function lastRiwayatKelas(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(RiwayatKelasSiswa::class, 'siswa_id')
+            ->latestOfMany('processed_at');
+    }
 }

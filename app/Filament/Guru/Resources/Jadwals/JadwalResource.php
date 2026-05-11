@@ -47,7 +47,10 @@ class JadwalResource extends Resource
 
         return parent::getEloquentQuery()
             ->where('guru_id', Auth::id())
-            ->when($hariIni, fn (Builder $q) => $q->where('hari', $hariIni))
+            ->whereHas('semesterAkademik', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->when($hariIni, fn ($q) => $q->where('hari', $hariIni))
             ->orderBy('jam_ke');
     }
 

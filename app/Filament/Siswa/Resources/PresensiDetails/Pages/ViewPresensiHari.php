@@ -197,7 +197,7 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
                 'jadwal.guru',
                 'details' => fn ($query) => $query->where('siswa_id', Auth::id()),
             ])
-            ->whereHas('jadwal', function (Builder $query) {
+            ->whereHas('jadwal', function ($query) {
                 $query
                     ->where('kelas_id', $this->siswa->kelas_id)
                     ->where('hari', $this->hari)

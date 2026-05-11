@@ -16,6 +16,7 @@ class Jadwal extends Model
         'hari',
         'jam_ke',
         'aktif',
+        'semester_akademik_id',
         'berlaku_dari',
         'berlaku_sampai',
     ];
@@ -40,5 +41,10 @@ class Jadwal extends Model
     public function guru(): BelongsTo
     {
         return $this->belongsTo(User::class, 'guru_id');
+    }
+
+    public function semesterAkademik(): BelongsTo
+    {
+        return $this->belongsTo(SemesterAkademik::class, 'semester_akademik_id');
     }
 }

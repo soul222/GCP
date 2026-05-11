@@ -16,9 +16,12 @@ class CreateMapel extends CreateRecord
     // Title di halaman
     protected static ?string $title = 'Buat Mata Pelajaran';
 
-    protected function getCreateFormAction(): Actions\Action
+    protected function getFormActions(): array
     {
-        return parent::getCreateFormAction()->label('Buat');
+        return [
+            $this->getCreateFormAction()->label('Buat'),
+            $this->getCancelFormAction()->label('Batal'),
+        ];
     }
 
     protected function getRedirectUrl(): string
