@@ -127,7 +127,7 @@ class SemesterAkademikResource extends Resource
                     ->date('d M Y')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Aktif')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
             ])

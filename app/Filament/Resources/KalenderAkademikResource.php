@@ -67,20 +67,18 @@ class KalenderAkademikResource extends Resource
                     ->options([
                         'libur_nasional' => 'Libur Nasional',
                         'libur_sekolah' => 'Libur Sekolah',
+                        'libur_semester' => 'Libur Semester',
+                        'ujian' => 'Ujian',
                         'kegiatan_sekolah' => 'Kegiatan Sekolah',
                         'lainnya' => 'Lainnya',
                     ])
                     ->required()
                     ->default('lainnya'),
-                Forms\Components\Toggle::make('is_holiday')
-                    ->label('Libur (Blokir Presensi)')
-                    ->default(false),
-                Forms\Components\Toggle::make('is_active')
-                    ->label('Aktif')
+                Forms\Components\Hidden::make('is_holiday')
                     ->default(true),
-                Forms\Components\Textarea::make('notes')
-                    ->label('Catatan')
-                    ->columnSpanFull(),
+                Forms\Components\Hidden::make('is_active')
+                    ->default(true),
+                Forms\Components\Hidden::make('notes'),
             ]);
     }
 
@@ -89,7 +87,7 @@ class KalenderAkademikResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Kegiatan')
+                    ->label('Nama Kegiatan / Libur')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('starts_at')
                     ->label('Tanggal Mulai')
@@ -104,23 +102,16 @@ class KalenderAkademikResource extends Resource
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'libur_nasional' => 'Libur Nasional',
                         'libur_sekolah' => 'Libur Sekolah',
+                        'libur_semester' => 'Libur Semester',
+                        'ujian' => 'Ujian',
                         'kegiatan_sekolah' => 'Kegiatan Sekolah',
                         'lainnya' => 'Lainnya',
                         default => $state,
                     })
                     ->searchable(),
-                Tables\Columns\IconColumn::make('is_holiday')
-                    ->label('Libur')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Aktif')
-                    ->boolean(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Status Aktif'),
-                Tables\Filters\TernaryFilter::make('is_holiday')
-                    ->label('Status Libur'),
+                //
             ])
             ->actions([
                 \Filament\Actions\EditAction::make()

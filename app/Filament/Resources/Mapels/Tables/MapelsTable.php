@@ -36,7 +36,7 @@ class MapelsTable
                     ->sortable(),
 
                 IconColumn::make('aktif')
-                    ->label('Aktif')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
             ])

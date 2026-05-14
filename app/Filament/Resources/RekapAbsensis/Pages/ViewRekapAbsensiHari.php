@@ -185,6 +185,17 @@ class ViewRekapAbsensiHari extends Page implements Tables\Contracts\HasTable
         $validDates = [];
 
         foreach ($tanggalList as $tanggal) {
+            if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                $exists = PresensiSesi::query()
+                    ->where('jadwal_id', $jadwal->id)
+                    ->where('tanggal', $tanggal)
+                    ->exists();
+                if ($exists) {
+                    $validDates[] = $tanggal;
+                }
+                continue;
+            }
+
             $validDates[] = $tanggal;
 
             PresensiSesi::firstOrCreate(
@@ -221,11 +232,17 @@ class ViewRekapAbsensiHari extends Page implements Tables\Contracts\HasTable
             return 0;
         }
 
-        return count($this->generateTanggalSesi(
+        $tanggalList = $this->generateTanggalSesi(
             $jadwal->hari,
             $jadwal->berlaku_dari,
             $jadwal->berlaku_sampai,
-        ));
+        );
+        
+        $effectiveDates = array_filter($tanggalList, function($tanggal) {
+            return !\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal);
+        });
+
+        return count($effectiveDates);
     }
 
     protected function hitungSudahDibuka(Jadwal $jadwal): int

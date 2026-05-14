@@ -61,6 +61,7 @@ class ViewRekapAbsensiHari extends Page implements Tables\Contracts\HasTable
                 $sesiDibukaIds = PresensiSesi::query()
                     ->where('jadwal_id', $jadwal->id)
                     ->whereIn('status', ['open', 'closed'])
+                    ->notBlockedByKalender()
                     ->pluck('id');
 
                 $details = PresensiDetail::query()
@@ -171,6 +172,17 @@ class ViewRekapAbsensiHari extends Page implements Tables\Contracts\HasTable
         $validDates = [];
 
         foreach ($tanggalList as $tanggal) {
+            if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                $exists = PresensiSesi::query()
+                    ->where('jadwal_id', $jadwal->id)
+                    ->where('tanggal', $tanggal)
+                    ->exists();
+                if ($exists) {
+                    $validDates[] = $tanggal;
+                }
+                continue;
+            }
+
             $validDates[] = $tanggal;
 
             $sesi = PresensiSesi::firstOrCreate(

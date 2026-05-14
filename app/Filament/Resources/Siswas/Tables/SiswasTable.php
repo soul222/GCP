@@ -39,7 +39,7 @@ class SiswasTable
                     ->sortable(),
 
                 IconColumn::make('is_active')
-                    ->label('Aktif')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
 

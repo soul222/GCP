@@ -44,4 +44,17 @@ class PresensiSesi extends Model
     {
         return $this->hasMany(PresensiDetail::class, 'presensi_sesi_id');
     }
+
+    public function scopeNotBlockedByKalender($query)
+    {
+        return $query->whereNotExists(function ($subquery) {
+            $subquery->select(\Illuminate\Support\Facades\DB::raw(1))
+                ->from('kalender_akademiks')
+                ->whereRaw('kalender_akademiks.starts_at <= presensi_sesis.tanggal')
+                ->where(function ($q) {
+                    $q->whereNull('kalender_akademiks.ends_at')
+                      ->orWhereRaw('kalender_akademiks.ends_at >= presensi_sesis.tanggal');
+                });
+        });
+    }
 }

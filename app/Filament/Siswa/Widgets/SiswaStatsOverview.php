@@ -19,7 +19,8 @@ class SiswaStatsOverview extends StatsOverviewWidget
         $presensiHariIni = PresensiDetail::query()
             ->where('siswa_id', $siswaId)
             ->whereHas('sesi', function ($query) {
-                $query->whereDate('tanggal', today());
+                $query->whereDate('tanggal', today())
+                      ->notBlockedByKalender();
             })
             ->count();
 
@@ -32,7 +33,8 @@ class SiswaStatsOverview extends StatsOverviewWidget
             ->where('siswa_id', $siswaId)
             ->where('status', 'alfa')
             ->whereHas('sesi', function ($query) {
-                $query->where('status', 'closed');
+                $query->where('status', 'closed')
+                      ->notBlockedByKalender();
             })
             ->count();
 
