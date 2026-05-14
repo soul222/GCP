@@ -24,6 +24,11 @@ class PrometheusIpWhitelist
             return $next($request);
         }
 
+        // Jika whitelist menggunakan wildcard *, izinkan semua (untuk testing/staging)
+        if (in_array('*', $allowedIps)) {
+            return $next($request);
+        }
+
         $clientIp = $request->ip();
 
         if (! in_array($clientIp, $allowedIps)) {
