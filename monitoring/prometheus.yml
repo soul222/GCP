@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Prometheus Configuration — Monitoring Sistem Absensi SMK Al Hafidz
+# Jalankan dari Windows lokal untuk memantau AWS dan GCP
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Cara pakai:
+#   1. Simpan file ini sebagai C:\prometheus\prometheus.yml
+#   2. Edit bagian targets (ganti [URL-...] dengan URL aktual)
+#   3. Jalankan: prometheus.exe --config.file=prometheus.yml
+#   4. Buka: http://localhost:9090
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+global:
+  scrape_interval:     15s   # Ambil data setiap 15 detik
+  evaluation_interval: 15s   # Evaluasi rules setiap 15 detik
+  scrape_timeout:      10s   # Timeout per scrape
+
+  # Label global yang ditambahkan ke semua time series
+  external_labels:
+    project: 'smk-alhafidz-absensi'
+    monitored_by: 'prometheus-local'
+
+# ── Scrape Configurations ─────────────────────────────────────────────────
+scrape_configs:
+
+  # ── Monitoring: Aplikasi di AWS Elastic Beanstalk ─────────────────────
+  - job_name: 'presensi_aws'
+    static_configs:
+      # Ganti dengan URL AWS tanpa http:// di depannya
+      # Contoh: presensi-production.ap-southeast-1.elasticbeanstalk.com
+      - targets: ['[URL-AWS-TANPA-HTTP]']
+        labels:
+          platform: 'aws'
+          region: 'ap-southeast-1'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scheme: http
+    scrape_timeout: 10s
+
+  # ── Monitoring: Aplikasi di GCP App Engine ────────────────────────────
+  - job_name: 'presensi_gcp'
+    static_configs:
+      # Ganti dengan URL GCP tanpa https:// di depannya
+      # Contoh: presensi-smk-alhafidz.as.r.appspot.com
+      - targets: ['[URL-GCP-TANPA-HTTPS]']
+        labels:
+          platform: 'gcp'
+          region: 'asia-southeast2'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scheme: https
+    scrape_timeout: 10s
+
+  # ── Monitoring: Prometheus itu sendiri ───────────────────────────────
+  - job_name: 'prometheus_self'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          platform: 'local'
+          component: 'prometheus'

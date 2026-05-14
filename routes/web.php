@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// ── Prometheus Metrics Endpoint ───────────────────────────────────────────
+// Dilindungi oleh PrometheusIpWhitelist middleware.
+// Hanya IP yang terdaftar di PROMETHEUS_ALLOWED_IPS (.env) yang bisa akses.
+// Tambahkan di .env: PROMETHEUS_ALLOWED_IPS=127.0.0.1,<IP-Prometheus-Server>
+Route::get('/metrics', [MetricsController::class, 'index'])
+    ->middleware(\App\Http\Middleware\PrometheusIpWhitelist::class)
+    ->name('metrics');
 
 Route::get('/dashboard', function () {
     $user = Auth::user(); // biar VS Code nggak merah

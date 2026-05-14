@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Google App Engine — Konfigurasi Deployment Laravel + Filament v5
+# SMK Al Hafidz — Sistem Absensi
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# INSTRUKSI:
+# 1. Ganti semua placeholder [___] dengan nilai yang sesuai
+# 2. Pastikan APP_KEY di-quote dengan tanda kutip ganda
+# 3. Jalankan: gcloud app deploy app.yaml --quiet
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+runtime: php82
+
+# ── Environment Variables ─────────────────────────────────────────────────
+env_variables:
+  # Laravel Core
+  APP_NAME: "Absensi SMK Al Hafidz"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "https://[PROJECT_ID].as.r.appspot.com"
+  APP_KEY: "base64:Br9Ve9nWUHcC1ocU0LnnMQgkraQdPzeDRhuCPd0uQjA="
+
+  # Database — via Cloud SQL Socket
+  DB_CONNECTION: "mysql"
+  DB_SOCKET: "/cloudsql/[PROJECT_ID]:[REGION]:presensi-db"
+  DB_DATABASE: "presensi_db"
+  DB_USERNAME: "laraveluser"
+  DB_PASSWORD: "[PASSWORD_LARAVEL_DB]"
+
+  # Session, Cache, Queue — pakai database (sudah ada di migrations)
+  SESSION_DRIVER: "database"
+  SESSION_LIFETIME: "120"
+  CACHE_STORE: "database"
+  QUEUE_CONNECTION: "database"
+
+  # Session domain — penting untuk Filament auth
+  SESSION_DOMAIN: "[PROJECT_ID].as.r.appspot.com"
+
+  # Filesystem — pakai local (GCP App Engine baca-saja, upload ke GCS jika perlu)
+  FILESYSTEM_DISK: "local"
+
+  # Logging ke stderr (tampil di GCP Cloud Logging)
+  LOG_CHANNEL: "stderr"
+  LOG_LEVEL: "error"
+
+  # Prometheus monitoring
+  PROMETHEUS_ALLOWED_IPS: "127.0.0.1"
+
+  # Mail — log saja untuk production awal
+  MAIL_MAILER: "log"
+
+# ── Cloud SQL Connection ──────────────────────────────────────────────────
+beta_settings:
+  cloud_sql_instances: "[PROJECT_ID]:[REGION]:presensi-db"
+
+# ── Routing — semua request → Laravel ────────────────────────────────────
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+# ── Scaling (opsional — sesuaikan kebutuhan) ─────────────────────────────
+# automatic_scaling:
+#   min_instances: 1
+#   max_instances: 3
+#   target_cpu_utilization: 0.65
