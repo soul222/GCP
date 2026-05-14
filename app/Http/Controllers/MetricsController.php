@@ -71,6 +71,8 @@ class MetricsController extends Controller
             'uptime_seconds'   => $this->getUptimeSeconds(),
             'app_version'      => config('app.version', '1.0.0'),
             'app_env'          => config('app.env', 'production'),
+            'memory_usage_bytes' => memory_get_usage(true),
+            'cpu_load_1m'      => function_exists('sys_getloadavg') ? (sys_getloadavg()[0] ?? 0) : 0,
         ];
     }
 
@@ -130,6 +132,18 @@ class MetricsController extends Controller
         $lines[] = '# HELP app_uptime_seconds Uptime aplikasi dalam detik';
         $lines[] = '# TYPE app_uptime_seconds gauge';
         $lines[] = sprintf('app_uptime_seconds %d', $metrics['uptime_seconds']);
+
+        // ── Memory Usage ──────────────────────────────────────────────────
+        $lines[] = '';
+        $lines[] = '# HELP app_memory_usage_bytes RAM yang digunakan oleh proses PHP saat ini (bytes)';
+        $lines[] = '# TYPE app_memory_usage_bytes gauge';
+        $lines[] = sprintf('app_memory_usage_bytes %d', $metrics['memory_usage_bytes']);
+
+        // ── CPU Load ──────────────────────────────────────────────────────
+        $lines[] = '';
+        $lines[] = '# HELP app_cpu_load_1m Rata-rata CPU Load server selama 1 menit terakhir';
+        $lines[] = '# TYPE app_cpu_load_1m gauge';
+        $lines[] = sprintf('app_cpu_load_1m %s', $metrics['cpu_load_1m']);
 
         return implode("\n", $lines) . "\n";
     }
