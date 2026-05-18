@@ -50,16 +50,11 @@ class EditJurusan extends EditRecord
         return static::getResource()::getUrl('index');
     }
 
-    protected function getSaveFormAction(): Action
+    protected function getFormActions(): array
     {
-        return parent::getSaveFormAction()
-            ->label('Simpan');
-    }
-
-    protected function getCancelFormAction(): Action
-    {
-        return parent::getCancelFormAction()
-            ->label('Batal')
-            ->url(static::getResource()::getUrl('index'));
+        return [
+            $this->getSaveFormAction()->label('Simpan'),
+            $this->getCancelFormAction()->label('Batal'),
+        ];
     }
 }

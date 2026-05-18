@@ -85,12 +85,12 @@ class PresensiDetailsTable
                         'open' => 'Sedang Dibuka',
                         'closed' => 'Ditutup',
                     ])
-                    ->query(function (Builder $query, array $data) {
+                    ->query(function ($query, array $data) {
                         if (! filled($data['value'] ?? null)) {
                             return $query;
                         }
 
-                        return $query->whereHas('sesi', fn (Builder $q) => $q->where('status', $data['value']));
+                        return $query->whereHas('sesi', fn ($q) => $q->where('status', $data['value']));
                     }),
 
                 SelectFilter::make('status_presensi')
@@ -101,7 +101,7 @@ class PresensiDetailsTable
                         'sakit' => 'Sakit',
                         'alfa' => 'Belum Absen',
                     ])
-                    ->query(function (Builder $query, array $data) {
+                    ->query(function ($query, array $data) {
                         if (! filled($data['value'] ?? null)) {
                             return $query;
                         }

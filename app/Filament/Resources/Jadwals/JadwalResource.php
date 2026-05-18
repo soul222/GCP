@@ -26,7 +26,7 @@ class JadwalResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 62;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 

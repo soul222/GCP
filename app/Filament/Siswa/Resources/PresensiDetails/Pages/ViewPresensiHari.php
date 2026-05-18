@@ -89,25 +89,46 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status Sesi')
                     ->badge()
+                    ->color(function (PresensiSesi $record): string {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return 'danger';
+                        }
+                        return match ($record->status) {
+                            'draft' => 'gray',
+                            'open' => 'success',
+                            'closed' => 'warning',
+                            default => 'gray',
+                        };
+                    })
                     ->alignCenter()
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'draft' => 'Belum Dibuka',
-                        'open' => 'Sedang Dibuka',
-                        'closed' => 'Ditutup',
-                        default => (string) $state,
+                    ->formatStateUsing(function (?string $state, PresensiSesi $record): string {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return 'Libur / Diblokir Kalender Akademik';
+                        }
+                        return match ($state) {
+                            'draft' => 'Belum Dibuka',
+                            'open' => 'Sedang Dibuka',
+                            'closed' => 'Ditutup',
+                            default => (string) $state,
+                        };
                     }),
 
                 Tables\Columns\TextColumn::make('presensi_kamu')
                     ->label('Presensi Kamu')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn (?string $state): string => match ($state) {
                         'Hadir' => 'success',
                         'Izin', 'Sakit' => 'warning',
                         'Alfa', 'Belum Absen' => 'danger',
+                        '-' => 'gray',
                         default => 'gray',
                     })
                     ->alignCenter()
                     ->state(function (PresensiSesi $record) {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return null;
+                        }
+                        
                         $detail = $record->details->firstWhere('siswa_id', Auth::id());
 
                         return match ($detail?->status) {
@@ -123,6 +144,10 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
                     ->label('Diisi Pada')
                     ->alignCenter()
                     ->state(function (PresensiSesi $record) {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return null;
+                        }
+
                         $detail = $record->details->firstWhere('siswa_id', Auth::id());
 
                         if (! $detail?->waktu_isi) {
@@ -139,6 +164,9 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
                     ->label('Isi Presensi')
                     ->icon('heroicon-o-pencil-square')
                     ->visible(function (PresensiSesi $record) {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return false;
+                        }
                         return $record->status === 'open'
                             && $record->details->firstWhere('siswa_id', Auth::id());
                     })
@@ -197,7 +225,7 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
                 'jadwal.guru',
                 'details' => fn ($query) => $query->where('siswa_id', Auth::id()),
             ])
-            ->whereHas('jadwal', function (Builder $query) {
+            ->whereHas('jadwal', function ($query) {
                 $query
                     ->where('kelas_id', $this->siswa->kelas_id)
                     ->where('hari', $this->hari)
@@ -235,6 +263,17 @@ class ViewPresensiHari extends Page implements Tables\Contracts\HasTable
             $validDates = [];
 
             foreach ($tanggalList as $tanggal) {
+                if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                    $exists = PresensiSesi::query()
+                        ->where('jadwal_id', $jadwal->id)
+                        ->where('tanggal', $tanggal)
+                        ->exists();
+                    if ($exists) {
+                        $validDates[] = $tanggal;
+                    }
+                    continue;
+                }
+
                 $validDates[] = $tanggal;
 
                 $sesi = PresensiSesi::firstOrCreate(

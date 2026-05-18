@@ -17,14 +17,12 @@ class EditMapel extends EditRecord
         return [];
     }
 
-    protected function getSaveFormAction(): Actions\Action
+    protected function getFormActions(): array
     {
-        return parent::getSaveFormAction()->label('Simpan');
-    }
-
-    protected function getCancelFormAction(): Actions\Action
-    {
-        return parent::getCancelFormAction()->label('Batal');
+        return [
+            $this->getSaveFormAction()->label('Simpan'),
+            $this->getCancelFormAction()->label('Batal'),
+        ];
     }
 
     protected function getRedirectUrl(): string

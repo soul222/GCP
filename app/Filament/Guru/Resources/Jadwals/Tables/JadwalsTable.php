@@ -59,6 +59,25 @@ class JadwalsTable
                     ->action(function ($record) {
                         $tanggal = now()->toDateString();
 
+                        $holiday = \App\Models\KalenderAkademik::query()
+                            ->where('is_active', true)
+                            ->where('is_holiday', true)
+                            ->where('starts_at', '<=', $tanggal)
+                            ->where(function ($query) use ($tanggal) {
+                                $query->whereNull('ends_at')
+                                    ->orWhere('ends_at', '>=', $tanggal);
+                            })
+                            ->first();
+
+                        if ($holiday) {
+                            Notification::make()
+                                ->title('Tidak dapat membuka presensi')
+                                ->body("Hari ini libur: {$holiday->name}")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         $sesi = PresensiSesi::firstOrCreate(
                             [
                                 'jadwal_id' => $record->id,

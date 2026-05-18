@@ -37,7 +37,7 @@ class PresensiSesiResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('jadwals', function (Builder $query) {
+            ->whereHas('jadwals', function ($query) {
                 $query->where('guru_id', Auth::id());
             })
             ->orderByRaw("

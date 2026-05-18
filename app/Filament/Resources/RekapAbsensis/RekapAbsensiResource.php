@@ -26,7 +26,7 @@ class RekapAbsensiResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Akademik';
 
-    protected static ?int $navigationSort = 21;
+    protected static ?int $navigationSort = 63;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 

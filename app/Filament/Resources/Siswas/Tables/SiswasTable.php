@@ -39,13 +39,18 @@ class SiswasTable
                     ->sortable(),
 
                 IconColumn::make('is_active')
-                    ->label('Aktif')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
 
                 TextColumn::make('keterangan_nonaktif')
                     ->label('Keterangan')
                     ->state(fn ($record) => $record->is_active ? '-' : ($record->keterangan_nonaktif ?? '-'))
+                    ->sortable(),
+
+                TextColumn::make('lastRiwayatKelas.fromKelas.nama')
+                    ->label('Kelas Terakhir')
+                    ->placeholder('-')
                     ->sortable(),
             ])
             ->filters([

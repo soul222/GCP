@@ -90,19 +90,48 @@ class ViewPresensiKelas extends Page implements Tables\Contracts\HasTable
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'draft' => 'Belum Dibuka',
-                        'open' => 'Sedang Dibuka',
-                        'closed' => 'Sudah Ditutup',
-                        default => '-',
+                    ->color(function (PresensiSesi $record): string {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return 'danger';
+                        }
+                        return match ($record->status) {
+                            'draft' => 'gray',
+                            'open' => 'success',
+                            'closed' => 'warning',
+                            default => 'gray',
+                        };
+                    })
+                    ->formatStateUsing(function (?string $state, PresensiSesi $record): string {
+                        if (\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)) {
+                            return 'Libur / Diblokir Kalender Akademik';
+                        }
+                        return match ($state) {
+                            'draft' => 'Belum Dibuka',
+                            'open' => 'Sedang Dibuka',
+                            'closed' => 'Sudah Ditutup',
+                            default => '-',
+                        };
                     }),
             ])
             ->recordActions([
                 Action::make('bukaPresensi')
                     ->label('Buka Absensi')
                     ->requiresConfirmation()
-                    ->visible(fn (PresensiSesi $record) => $record->status === 'draft')
+                    ->visible(fn (PresensiSesi $record) => $record->status === 'draft' && !\App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal))
                     ->action(function (PresensiSesi $record): void {
+                        // Check if blocked by Kalender Akademik
+                        $blockingEvent = \App\Models\KalenderAkademik::getBlockingEvent($record->tanggal);
+                        
+                        if ($blockingEvent) {
+                            Notification::make()
+                                ->title('Presensi tidak dapat dibuka')
+                                ->body("Presensi tidak dapat dibuka karena tanggal ini termasuk Kalender Akademik: {$blockingEvent->name}.")
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
                         if ($record->status === 'closed') {
                             Notification::make()
                                 ->title('Sesi sudah ditutup')
@@ -191,7 +220,8 @@ class ViewPresensiKelas extends Page implements Tables\Contracts\HasTable
                     ->label('Lihat Detail')
                     ->url(fn (PresensiSesi $record) => PresensiSesiResource::getUrl('detail', [
                         'record' => $record->id,
-                    ])),
+                    ]))
+                    ->hidden(fn (PresensiSesi $record) => \App\Models\KalenderAkademik::isTanggalDiblokir($record->tanggal)),
             ]);
     }
 
@@ -224,7 +254,26 @@ class ViewPresensiKelas extends Page implements Tables\Contracts\HasTable
         $validKeys = [];
 
         foreach ($tanggalList as $tanggal) {
-            $validKeys[] = $this->makeSessionKey($this->jadwalRecord->id, $tanggal);
+            $sessionKey = $this->makeSessionKey($this->jadwalRecord->id, $tanggal);
+
+            if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                // If it already exists, we must include it in validKeys to prevent it from being deleted
+                // (Follows "Do not delete presensi_sesis" safety rule)
+                $exists = PresensiSesi::query()
+                    ->where('jadwal_id', $this->jadwalRecord->id)
+                    ->where('tanggal', $tanggal)
+                    ->exists();
+                
+                if ($exists) {
+                    $validKeys[] = $sessionKey;
+                }
+                
+                // We do NOT create new sessions on blocked dates
+                // (Follows "No presensi_sesis is created" requirement)
+                continue;
+            }
+
+            $validKeys[] = $sessionKey;
 
             PresensiSesi::firstOrCreate(
                 [

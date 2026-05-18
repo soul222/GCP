@@ -70,10 +70,19 @@ class RekapWaliKelasPertemuan extends Page implements Tables\Contracts\HasTable
 
     public function table(Table $table): Table
     {
+        $tanggalList = [];
+        if ($this->jadwalRecord->berlaku_dari && $this->jadwalRecord->berlaku_sampai) {
+            $tanggalList = $this->generateTanggalSesi(
+                $this->jadwalRecord->hari,
+                $this->jadwalRecord->berlaku_dari,
+                $this->jadwalRecord->berlaku_sampai,
+            );
+        }
+
         $sesis = PresensiSesi::query()
             ->where('jadwal_id', $this->jadwalRecord->id)
-            ->orderBy('tanggal')
-            ->get();
+            ->get()
+            ->keyBy(fn ($s) => Carbon::parse($s->tanggal)->toDateString());
 
         $columns = [
             Tables\Columns\TextColumn::make('no')
@@ -86,12 +95,20 @@ class RekapWaliKelasPertemuan extends Page implements Tables\Contracts\HasTable
                 ->sortable(),
         ];
 
-        foreach ($sesis as $sesi) {
-            $dateFormatted = Carbon::parse($sesi->tanggal)->format('d/m');
+        foreach ($tanggalList as $tanggal) {
+            $dateFormatted = Carbon::parse($tanggal)->format('d/m');
+            $sesi = $sesis->get($tanggal);
             
-            $columns[] = Tables\Columns\TextColumn::make('sesi_' . $sesi->id)
+            $columns[] = Tables\Columns\TextColumn::make('tgl_' . str_replace('-', '_', $tanggal))
                 ->label($dateFormatted)
-                ->state(function (User $record) use ($sesi) {
+                ->state(function (User $record) use ($sesi, $tanggal) {
+                    if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                        return 'L';
+                    }
+                    if (!$sesi) {
+                        return '-';
+                    }
+                    
                     $detail = $record->presensiDetails->firstWhere('presensi_sesi_id', $sesi->id);
                     
                     if (! $detail || $sesi->status === 'draft') {
@@ -116,8 +133,10 @@ class RekapWaliKelasPertemuan extends Page implements Tables\Contracts\HasTable
                     'I' => 'warning',
                     'S' => 'warning',
                     'A' => 'danger',
+                    'L' => 'danger',
                     default => 'gray',
-                });
+                })
+                ->tooltip(fn (string $state) => $state === 'L' ? 'Libur / Diblokir Kalender Akademik' : null);
         }
 
         $columns[] = Tables\Columns\TextColumn::make('total_hadir')
@@ -179,7 +198,8 @@ class RekapWaliKelasPertemuan extends Page implements Tables\Contracts\HasTable
                     });
             })
             ->with(['presensiDetails' => function ($q) use ($sesiIds) {
-                $q->whereIn('presensi_sesi_id', $sesiIds);
+                $q->whereIn('presensi_sesi_id', $sesiIds)
+                  ->whereHas('sesi', fn($sq) => $sq->notBlockedByKalender());
             }]);
     }
 
@@ -198,6 +218,17 @@ class RekapWaliKelasPertemuan extends Page implements Tables\Contracts\HasTable
         $validDates = [];
 
         foreach ($tanggalList as $tanggal) {
+            if (\App\Models\KalenderAkademik::isTanggalDiblokir($tanggal)) {
+                $exists = PresensiSesi::query()
+                    ->where('jadwal_id', $jadwal->id)
+                    ->where('tanggal', $tanggal)
+                    ->exists();
+                if ($exists) {
+                    $validDates[] = $tanggal;
+                }
+                continue;
+            }
+
             $validDates[] = $tanggal;
 
             PresensiSesi::firstOrCreate(

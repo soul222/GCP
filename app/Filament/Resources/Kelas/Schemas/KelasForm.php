@@ -58,6 +58,20 @@ class KelasForm
                     ->dehydrated()
                     ->required()
                     ->unique(ignoreRecord: true),
+
+                Select::make('next_kelas_id')
+                    ->label('Kelas Tujuan Kenaikan')
+                    ->helperText('Kosongkan untuk kelas XII atau kelas yang tidak memiliki tujuan kenaikan.')
+                    ->relationship('nextKelas', 'nama', function ($query, ?\Illuminate\Database\Eloquent\Model $record) {
+                        $query->where('aktif', true);
+                        if ($record) {
+                            $query->where('id', '!=', $record->id);
+                        }
+                        return $query->orderBy('nama');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]),
 
             Toggle::make('aktif')

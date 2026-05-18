@@ -45,7 +45,8 @@ class AdminKehadiranHariIni extends StatsOverviewWidget
         return PresensiDetail::query()
             ->where('status', $status)
             ->whereHas('sesi', function ($query) use ($hariIni) {
-                $query->whereDate('tanggal', $hariIni);
+                $query->whereDate('tanggal', $hariIni)
+                      ->notBlockedByKalender();
             })
             ->count();
     }

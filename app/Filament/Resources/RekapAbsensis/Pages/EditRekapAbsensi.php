@@ -20,4 +20,17 @@ class EditRekapAbsensi extends EditRecord
             RestoreAction::make(),
         ];
     }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()->label('Simpan'),
+            $this->getCancelFormAction()->label('Batal'),
+        ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('index');
+    }
 }

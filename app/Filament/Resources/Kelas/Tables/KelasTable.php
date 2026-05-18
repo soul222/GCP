@@ -49,8 +49,13 @@ class KelasTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('nextKelas.nama')
+                    ->label('Naik Ke')
+                    ->placeholder('-')
+                    ->sortable(),
+
                 IconColumn::make('aktif')
-                    ->label('Aktif')
+                    ->label('Status')
                     ->boolean()
                     ->sortable(),
             ])
@@ -104,6 +109,65 @@ class KelasTable
                     }),
             ])
             ->toolbarActions([
+                Action::make('generateMapping')
+                    ->label('Isi Tujuan Otomatis')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate Mapping Kenaikan Kelas?')
+                    ->modalDescription('Sistem akan mencari tujuan otomatis (misal: X RPL 1 -> XI RPL 1). Kelas XII akan dikosongkan untuk persiapan kelulusan. Aksi ini tidak akan memindahkan siswa. Lanjutkan?')
+                    ->action(function () {
+                        $kelasList = \App\Models\Kelas::where('aktif', true)->get();
+                        $mappedCount = 0;
+                        $notFoundCount = 0;
+                        $lulusCount = 0;
+
+                        foreach ($kelasList as $kelas) {
+                            if ($kelas->tingkat_angka === 12 || $kelas->tingkat === 'XII') {
+                                $kelas->next_kelas_id = null;
+                                $kelas->save();
+                                $lulusCount++;
+                            } elseif ($kelas->tingkat_angka === 10 || $kelas->tingkat === 'X') {
+                                $target = \App\Models\Kelas::where('aktif', true)
+                                    ->where(function ($q) {
+                                        $q->where('tingkat_angka', 11)->orWhere('tingkat', 'XI');
+                                    })
+                                    ->where('jurusan', $kelas->jurusan)
+                                    ->where('nomor', $kelas->nomor)
+                                    ->first();
+
+                                if ($target) {
+                                    $kelas->next_kelas_id = $target->id;
+                                    $kelas->save();
+                                    $mappedCount++;
+                                } else {
+                                    $notFoundCount++;
+                                }
+                            } elseif ($kelas->tingkat_angka === 11 || $kelas->tingkat === 'XI') {
+                                $target = \App\Models\Kelas::where('aktif', true)
+                                    ->where(function ($q) {
+                                        $q->where('tingkat_angka', 12)->orWhere('tingkat', 'XII');
+                                    })
+                                    ->where('jurusan', $kelas->jurusan)
+                                    ->where('nomor', $kelas->nomor)
+                                    ->first();
+
+                                if ($target) {
+                                    $kelas->next_kelas_id = $target->id;
+                                    $kelas->save();
+                                    $mappedCount++;
+                                } else {
+                                    $notFoundCount++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Mapping Selesai')
+                            ->body("Berhasil: {$mappedCount} kelas.<br>Tidak ditemukan: {$notFoundCount} kelas.<br>Lulus (XII): {$lulusCount} kelas.")
+                            ->success()
+                            ->send();
+                    }),
                 BulkActionGroup::make([
                     BulkAction::make('hapusTerpilihPermanen')
                         ->label('Hapus terpilih')
