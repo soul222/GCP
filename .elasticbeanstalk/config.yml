@@ -1,6 +1,6 @@
 branch-defaults:
   main:
-    environment: presensi-staging-6
+    environment: null
     group_suffix: null
 global:
   application_name: presensi-smk-alhafidz

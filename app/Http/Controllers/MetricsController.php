@@ -73,6 +73,8 @@ class MetricsController extends Controller
             'app_env'          => config('app.env', 'production'),
             'memory_usage_bytes' => memory_get_usage(true),
             'cpu_load_1m'      => function_exists('sys_getloadavg') ? (sys_getloadavg()[0] ?? 0) : 0,
+            'errors_5xx'       => Cache::get('prometheus_error_5xx_counter', 0),
+            'errors_4xx'       => Cache::get('prometheus_error_4xx_counter', 0),
         ];
     }
 
@@ -144,6 +146,13 @@ class MetricsController extends Controller
         $lines[] = '# HELP app_cpu_load_1m Rata-rata CPU Load server selama 1 menit terakhir';
         $lines[] = '# TYPE app_cpu_load_1m gauge';
         $lines[] = sprintf('app_cpu_load_1m %s', $metrics['cpu_load_1m']);
+
+        // ── Error Rate ────────────────────────────────────────────────────
+        $lines[] = '';
+        $lines[] = '# HELP app_http_errors_total Total HTTP response errors (4xx dan 5xx)';
+        $lines[] = '# TYPE app_http_errors_total counter';
+        $lines[] = sprintf('app_http_errors_total{status="5xx"} %d', $metrics['errors_5xx']);
+        $lines[] = sprintf('app_http_errors_total{status="4xx"} %d', $metrics['errors_4xx']);
 
         return implode("\n", $lines) . "\n";
     }
