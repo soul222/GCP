@@ -12,7 +12,7 @@ set -e  # Berhenti otomatis jika ada error
 PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
 REGION="asia-southeast2"
 DB_INSTANCE="presensi-db-gcp"
-DB_NAME="presensi_db1"
+DB_NAME="absensi_smk_alhafidz"
 DB_PASSWORD="Wnakmi42GCP"
 
 echo "============================================"
