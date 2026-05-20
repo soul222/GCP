@@ -1,3 +1,14 @@
+/aws-config
+vendor/
+node_modules/
+.env
+*.sql
+*.pdf
+*.pem
+.elasticbeanstalk/*
+!.elasticbeanstalk/config.yml
+storage/logs/*
+*.log
 *.log
 .DS_Store
 .env
