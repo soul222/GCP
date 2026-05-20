@@ -6,22 +6,52 @@ Dokumen ini disusun khusus untuk tim pengembang guna mempermudah proses deployme
 ---
 
 ## 📋 Daftar Isi
-1. [📊 Informasi Proyek GCP & Repository](#1-informasi-proyek-gcp--repository)
-2. [🔑 Peta Lokasi Password & Kunci (Cara Mengubah Kredensial)](#2-peta-lokasi-password--kunci-cara-mengubah-kredensial)
-3. [🔌 Layanan GCP yang Wajib Diaktifkan (APIs & Services)](#3-layanan-gcp-yang-wajib-diaktifkan-apis--services)
-4. [🛠️ Langkah-Langkah Deployment via Cloud Shell](#4-langkah-langkah-deployment-via-cloud-shell)
-   - [Langkah 4.1: Persiapan & Kloning Repository](#langkah-41-persiapan--kloning-repository)
-   - [Langkah 4.2: Setup Infrastruktur Otomatis](#langkah-42-setup-infrastruktur-otomatis)
-   - [Langkah 4.3: Import Database Manual (.sql)](#langkah-43-import-database-manual-sql)
-   - [Langkah 4.4: Deploy Aplikasi ke Cloud Run](#langkah-44-deploy-aplikasi-ke-cloud-run)
-   - [Langkah 4.5: Sinkronisasi APP_URL Pasca-Deploy](#langkah-45-sinkronisasi-app_url-pasca-deploy)
-5. [📈 Verifikasi & Pemantauan (Monitoring)](#5-verifikasi--pemantauan-monitoring)
-6. [🛑 Langkah Pembersihan Resource (Teardown)](#6-langkah-pembersihan-resource-teardown)
-7. [🆘 Troubleshooting & Masalah Umum](#7-troubleshooting--masalah-umum)
+1. [💡 Mengapa Cloud Run? (Bukan App Engine)](#1-mengapa-cloud-run-bukan-app-engine)
+2. [📊 Informasi Proyek GCP & Repository](#2-informasi-proyek-gcp--repository)
+3. [🔑 Peta Lokasi Password & Kunci (Cara Mengubah Kredensial)](#3-peta-lokasi-password--kunci-cara-mengubah-kredensial)
+4. [🔌 Layanan GCP yang Wajib Diaktifkan (APIs & Services)](#4-layanan-gcp-yang-wajib-diaktifkan-apis--services)
+5. [🛠️ Langkah-Langkah Deployment via Cloud Shell](#5-langkah-langkah-deployment-via-cloud-shell)
+   - [Langkah 5.1: Persiapan & Kloning Repository](#langkah-51-persiapan--kloning-repository)
+   - [Langkah 5.2: Setup Infrastruktur Otomatis](#langkah-52-setup-infrastruktur-otomatis)
+   - [Langkah 5.3: Import Database Manual (.sql)](#langkah-53-import-database-manual-sql)
+   - [Langkah 5.4: Deploy Aplikasi ke Cloud Run](#langkah-54-deploy-aplikasi-ke-cloud-run)
+   - [Langkah 5.5: Sinkronisasi APP_URL Pasca-Deploy](#langkah-55-sinkronisasi-app_url-pasca-deploy)
+6. [📈 Verifikasi & Pemantauan (Monitoring)](#6-verifikasi--pemantauan-monitoring)
+7. [🛑 Langkah Pembersihan Resource (Teardown)](#7-langkah-pembersihan-resource-teardown)
+8. [🆘 Troubleshooting & Masalah Umum](#8-troubleshooting--masalah-umum)
 
 ---
 
-## 📊 1. Informasi Proyek GCP & Repository
+## 1. 💡 Mengapa Cloud Run? (Bukan App Engine)
+
+> [!NOTE]
+> **Mengapa dokumen lama/deskripsi tugas akhir menyebutkan App Engine, tetapi kita malah menggunakan Cloud Run?**
+> 
+> Jawabannya sangat sederhana: **BIAYA (COST) & KEMUDAHAN.**
+> 
+> Bagi pemula atau rekan tim yang baru belajar *cloud computing*, sangat penting untuk memahami perbedaan mendasar ini agar tagihan kartu kredit/saldo GCP Anda tidak jebol (sampai jutaan rupiah) hanya karena salah memilih jenis layanan cloud.
+
+Berikut adalah perbandingan jujur mengapa **Cloud Run** jauh lebih baik, aman, dan hemat untuk proyek Tugas Akhir ini dibandingkan dengan **App Engine**:
+
+### 📊 Tabel Perbandingan: Cloud Run vs App Engine
+
+| Aspek | 🚀 GCP Cloud Run (Pilihan Kita) | ☁️ GCP App Engine | Mengapa Ini Penting bagi Mahasiswa? |
+|:---|:---|:---|:---|
+| **Fitur "Scale to Zero"** | **Mendukung Penuh (`--min-instances 0`)** | Terbatas / Tidak Mendukung (Flexible) | **SANGAT PENTING!** Jika web tidak diakses (misal malam hari), server Cloud Run otomatis mati total. Biayanya **Rp 0** saat tidak ada traffic. App Engine akan terus menyala 24 jam dan memotong saldo Anda secara konstan. |
+| **Estimasi Biaya Bulanan** | **Sangat Murah (~Rp 3.000 - Rp 5.000 / hari jika aktif)** | Mahal (~Rp 300.000 - Rp 1.500.000 / bulan) | Cloud Run hanya menagih untuk milidetik saat kode Anda benar-benar berjalan memproses request. |
+| **Teknologi Dasar** | **Berbasis Docker Container** | Berbasis runtime bawaan GCP | Cloud Run menggunakan Docker, artinya kode aplikasi Anda standar industri, mandiri, dan sangat mudah dipindahkan ke server mana pun (AWS, VPS, local PC) tanpa mengubah kode. |
+| **Waktu Deployment** | **Cepat (3 - 5 menit)** | Lambat (10 - 20 menit) | Rekan tim Anda tidak perlu membuang waktu lama menunggu proses deploy selesai di Cloud Shell. |
+| **Keamanan Kredensial** | Diset dinamis melalui Env Vars saat deploy | Harus ditulis di dalam file `app.yaml` | Menulis kredensial di `app.yaml` sangat rawan tidak sengaja ter-push ke GitHub publik. |
+
+### 💡 Analogi Sederhana untuk Pemula:
+* **App Engine** itu seperti **Menyewa Kamar Kos Bulanan**. Anda pakai atau tidak pakai kamar tersebut (misalnya saat Anda sedang pergi/tidur), Anda tetap wajib membayar sewa penuh setiap bulan.
+* **Cloud Run** itu seperti **Membayar Kamar Hotel/Bilik Warnet per Jam**. Anda hanya perlu membayar tepat untuk durasi menit/jam saat Anda menempati dan menggunakan bilik tersebut. Jika Anda keluar, arloji pembayaran berhenti seketika.
+
+Oleh karena itu, demi menyelamatkan kantong mahasiswa dan memberikan fleksibilitas deployment berbasis Docker kontainer modern, **GCP Cloud Run adalah keputusan arsitektur terbaik untuk sistem absensi ini.**
+
+---
+
+## 📊 2. Informasi Proyek GCP & Repository
 
 Berikut adalah data identitas proyek GCP yang telah terdaftar dan siap digunakan:
 
@@ -35,7 +65,7 @@ Berikut adalah data identitas proyek GCP yang telah terdaftar dan siap digunakan
 
 ---
 
-## 🔑 2. Peta Lokasi Password & Kunci (Cara Mengubah Kredensial)
+## 🔑 3. Peta Lokasi Password & Kunci (Cara Mengubah Kredensial)
 
 Demi keamanan sistem, Anda **sangat disarankan** untuk mengubah password bawaan sebelum melakukan deployment pertama. Berikut adalah lokasi file dan parameter yang harus disesuaikan:
 
@@ -64,7 +94,7 @@ Demi keamanan sistem, Anda **sangat disarankan** untuk mengubah password bawaan 
 
 ---
 
-## 🔌 3. Layanan GCP yang Wajib Diaktifkan (APIs & Services)
+## 🔌 4. Layanan GCP yang Wajib Diaktifkan (APIs & Services)
 
 Aplikasi ini berjalan menggunakan arsitektur Cloud Run + Cloud SQL (MySQL). Agar seluruh proses berjalan lancar, 4 API utama berikut **wajib diaktifkan** di dalam proyek GCP Anda:
 
@@ -112,11 +142,11 @@ gcloud services enable \
 
 ---
 
-## 🛠️ 4. Langkah-Langkah Deployment via Cloud Shell
+## 🛠️ 5. Langkah-Langkah Deployment via Cloud Shell
 
 Ikuti langkah-langkah berikut secara berurutan untuk meluncurkan aplikasi Anda dari nol (0) hingga online.
 
-### Langkah 4.1: Persiapan & Kloning Repository
+### Langkah 5.1: Persiapan & Kloning Repository
 1. Buka **[GCP Console](https://console.cloud.google.com)**.
 2. Klik ikon **Cloud Shell** `>_` di bagian pojok kanan atas layar (sebelah kanan kolom pencarian).
 3. Tunggu hingga terminal virtual Cloud Shell muncul di bagian bawah browser Anda.
@@ -128,7 +158,7 @@ Ikuti langkah-langkah berikut secara berurutan untuk meluncurkan aplikasi Anda d
 
 ---
 
-### Langkah 4.2: Setup Infrastruktur Otomatis
+### Langkah 5.2: Setup Infrastruktur Otomatis
 Jalankan script setup untuk mengaktifkan API, membuat instance Cloud SQL MySQL, serta membuat database kosong.
 
 1. Di dalam Cloud Shell, berikan izin eksekusi dan jalankan script:
@@ -152,7 +182,7 @@ Jalankan script setup untuk mengaktifkan API, membuat instance Cloud SQL MySQL, 
 
 ---
 
-### Langkah 4.3: Import Database Manual (.sql)
+### Langkah 5.3: Import Database Manual (.sql)
 Karena database tidak di-migrate dari awal tetapi menggunakan backup data terisi yang ada di file `database/absensi_smk_alhafidz.sql`, ikuti langkah pengunggahan dan pengimporan manual berikut:
 
 #### 1. Buat Bucket Cloud Storage Sementara
@@ -202,7 +232,7 @@ gcloud sql connect presensi-db-gcp --user=root --database=presensi_db1
 
 ---
 
-### Langkah 4.4: Deploy Aplikasi ke Cloud Run
+### Langkah 5.4: Deploy Aplikasi ke Cloud Run
 Jalankan proses kompilasi kode Laravel ke image Docker, mengunggahnya ke registry, dan meluncurkannya ke serverless Cloud Run.
 
 1. Di terminal Cloud Shell, jalankan script deployment:
@@ -223,8 +253,8 @@ Jalankan proses kompilasi kode Laravel ke image Docker, mengunggahnya ke registr
 
 ---
 
-### Langkah 4.5: Sinkronisasi APP_URL Pasca-Deploy
-Karena Laravel memerlukan informasi URL server yang tepat agar link menu, aset CSS, dan Javascript termuat sempurna di browser, kita harus memperbarui konfigurasi `APP_URL` di Cloud Run dengan URL asli yang didapatkan pada Langkah 4.4.
+### Langkah 5.5: Sinkronisasi APP_URL Pasca-Deploy
+Karena Laravel memerlukan informasi URL server yang tepat agar link menu, aset CSS, dan Javascript termuat sempurna di browser, kita harus memperbarui konfigurasi `APP_URL` di Cloud Run dengan URL asli yang didapatkan pada Langkah 5.4.
 
 1. Jalankan perintah pembaruan env-var berikut di Cloud Shell:
    ```bash
@@ -233,20 +263,20 @@ Karena Laravel memerlukan informasi URL server yang tepat agar link menu, aset C
        --project=project-876bbc01-98af-4d8d-9e1 \
        --update-env-vars APP_URL=https://presensi-alhafidz-xxxxxxxxxx-et.a.run.app
    ```
-   *(Ganti `https://presensi-alhafidz-xxxxxxxxxx-et.a.run.app` dengan URL asli hasil deploy Anda di Langkah 4.4)*
+   *(Ganti `https://presensi-alhafidz-xxxxxxxxxx-et.a.run.app` dengan URL asli hasil deploy Anda di Langkah 5.4)*
 
 2. Tunggu proses update revisi Cloud Run selesai (~30 detik). Aplikasi Anda sekarang **100% aktif dan siap digunakan!**
 
 ---
 
-## 📈 5. Verifikasi & Pemantauan (Monitoring)
+## 📈 6. Verifikasi & Pemantauan (Monitoring)
 
-### 5.1 Verifikasi Aplikasi Web di Browser
+### 6.1 Verifikasi Aplikasi Web di Browser
 1. Buka tab baru di browser Anda dan kunjungi URL Cloud Run yang Anda catat sebelumnya.
 2. Pastikan halaman login absensi **Sistem Informasi Absensi SMK Al Hafidz** terbuka dengan desain premium.
 3. Coba lakukan login menggunakan akun kredensial admin yang ada di database absensi Anda.
 
-### 5.2 Verifikasi Endpoint Metrics Prometheus
+### 6.2 Verifikasi Endpoint Metrics Prometheus
 Aplikasi ini sudah dilengkapi sistem monitoring bawaan. Cek keberadaan metrik sistem dengan membuka alamat:
 ```
 https://presensi-alhafidz-xxxxxxxxxx-et.a.run.app/metrics
@@ -255,7 +285,7 @@ https://presensi-alhafidz-xxxxxxxxxx-et.a.run.app/metrics
 
 ---
 
-### 5.3 Menghubungkan Prometheus Lokal Teammate ke GCP
+### 6.3 Menghubungkan Prometheus Lokal Teammate ke GCP
 
 Jika rekan kerja Anda ingin memantau server produksi GCP dari Prometheus lokal di laptop mereka:
 
@@ -283,7 +313,7 @@ Jika rekan kerja Anda ingin memantau server produksi GCP dari Prometheus lokal d
 
 ---
 
-### 5.4 Cara Membaca Log System di Cloud Run
+### 6.4 Cara Membaca Log System di Cloud Run
 Jika terjadi error (misalnya `500 Server Error` atau masalah konektivitas), Anda dapat membaca pesan kesalahan langsung melalui terminal Cloud Shell dengan mengetik:
 ```bash
 gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=presensi-alhafidz" \
@@ -293,7 +323,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 
 ---
 
-## 🛑 6. Langkah Pembersihan Resource (Teardown)
+## 🛑 7. Langkah Pembersihan Resource (Teardown)
 
 > [!WARNING]
 > **PENTING:** Lakukan langkah pembersihan ini setelah masa demo, pengujian, atau penilaian Tugas Akhir selesai. Hal ini penting untuk menghentikan billing agar saldo akun GCP Anda tidak berkurang terus-menerus!
@@ -355,14 +385,14 @@ gcloud projects delete project-876bbc01-98af-4d8d-9e1 --quiet
 
 ---
 
-## 🆘 7. Troubleshooting & Masalah Umum
+## 🆘 8. Troubleshooting & Masalah Umum
 
 ### ❌ Error 1: `500 | Server Error` saat membuka website
 * **Penyebab:** Umumnya dikarenakan aplikasi gagal terhubung ke database MySQL.
 * **Solusi:**
   1. Pastikan IP address `DB_HOST` di Cloud Run terkonfigurasi dengan benar.
   2. Buka `deploy-gcp.sh`, pastikan password database (`DB_PASSWORD`) sama dengan yang dibuat saat menjalankan `setup-gcp.sh`.
-  3. Cek log dengan perintah `gcloud logging read ...` (Langkah 5.4) untuk melihat detail error Laravel.
+  3. Cek log dengan perintah `gcloud logging read ...` (Langkah 6.4) untuk melihat detail error Laravel.
 
 ### ❌ Error 2: Koneksi database `Connection refused` atau `Access denied`
 * **Penyebab:** Cloud SQL memblokir akses koneksi dari luar atau kredensial user salah.
@@ -372,7 +402,7 @@ gcloud projects delete project-876bbc01-98af-4d8d-9e1 --quiet
 
 ### ❌ Error 3: Aset web (CSS/JS) rusak atau link menu mengarah ke localhost/AWS
 * **Penyebab:** Variabel `APP_URL` di Cloud Run masih mengarah ke URL lama atau placeholder.
-* **Solusi:** Jalankan perintah pada **Langkah 4.5** untuk memperbarui variabel `APP_URL` dengan alamat URL asli Cloud Run yang berakhiran `.run.app`.
+* **Solusi:** Jalankan perintah pada **Langkah 5.5** untuk memperbarui variabel `APP_URL` dengan alamat URL asli Cloud Run yang berakhiran `.run.app`.
 
 ---
 *Dokumentasi ini disiapkan secara khusus untuk memudahkan kolaborasi tim pengembang dalam deployment Sistem Informasi Absensi SMK Al Hafidz.*
