@@ -10,14 +10,14 @@
 set -e
 
 # ── Konfigurasi (sesuaikan jika perlu) ──────────────────────────────────────
-PROJECT_ID="presensi-alhafidz"
+PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
 REGION="asia-southeast2"
 SERVICE_NAME="presensi-alhafidz"
 DB_INSTANCE="presensi-db-gcp"
 DB_NAME="presensi_db1"
 DB_USER="root"
 DB_PASSWORD="Wnakmi42GCP"
-APP_URL="https://dashboard.forumapi.my.id"
+APP_URL="https://presensi-alhafidz-placeholder.a.run.app"
 APP_KEY="base64:Br9Ve9nWUHcC1ocU0LnnMQgkraQdPzeDRhuCPd0uQjA="
 # ────────────────────────────────────────────────────────────────────────────
 
