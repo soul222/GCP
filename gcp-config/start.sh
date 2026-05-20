@@ -7,8 +7,8 @@ echo "==> Memulai startup script Cloud Run..."
 PORT=${PORT:-8080}
 sed -i "s/listen 8080;/listen ${PORT};/g" /etc/nginx/nginx.conf
 
-echo "==> Menjalankan migrasi database..."
-php artisan migrate --force
+echo "==> Skip migrasi (database diimport manual via Cloud SQL)"
+# php artisan migrate --force  # Tidak dipakai - DB diimport dari file SQL
 
 echo "==> Membuat storage symlink..."
 php artisan storage:link || true
