@@ -14,11 +14,11 @@ PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
 REGION="asia-southeast2"
 SERVICE_NAME="presensi-alhafidz"
 DB_INSTANCE="presensi-db-gcp"
-DB_NAME="presensi_db1"
+DB_NAME="absensi_smk_alhafidz" # Jika kondisinya ingin mengimport file sql maka namanya harus sama dengan file sql yang akan diimport
 DB_USER="root"
-DB_PASSWORD="Wnakmi42GCP"
+DB_PASSWORD="Wnakmi42GCP" # diubah jika sesuai kebutuhan dan harus sama dengan password  di setup-gcp.sh
 APP_URL="https://presensi-alhafidz-placeholder.a.run.app"
-APP_KEY="base64:Br9Ve9nWUHcC1ocU0LnnMQgkraQdPzeDRhuCPd0uQjA="
+APP_KEY="base64:45CldhQZf7DzcW9RKBOP6ZAy3pNfKD8XueIAhDjoAnM="
 # ────────────────────────────────────────────────────────────────────────────
 
 echo "============================================"

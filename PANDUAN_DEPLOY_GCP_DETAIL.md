@@ -198,7 +198,7 @@ Karena database tidak di-migrate dari awal tetapi menggunakan backup data terisi
 Buat ruang penyimpanan (bucket) sementara di GCP untuk mengupload file SQL Anda:
 
 ```bash
-# Buat bucket (Ganti nama bucket agar unik, misal tambahkan ID projek di belakangnya)
+# Buat bucket (Ganti nama bucket (bagian yang bisa di ganti ini: presensi-db-import-876) agar unik, misal tambahkan ID projek di belakangnya (id project nya yang ini: project-876bbc01-98af-4d8d-9e1))
 gsutil mb -p project-876bbc01-98af-4d8d-9e1 -c standard -l asia-southeast2 gs://presensi-db-import-876/
 ```
 
@@ -207,16 +207,19 @@ gsutil mb -p project-876bbc01-98af-4d8d-9e1 -c standard -l asia-southeast2 gs://
 Copy file SQL yang ada di repositori lokal ke dalam bucket yang baru dibuat:
 
 ```bash
+# Buat bagian ini presensi-db-import-876 diganti dengan nama bucket yang telah dibuat
 gsutil cp database/absensi_smk_alhafidz.sql gs://presensi-db-import-876/
 ```
 
 #### 3. Jalankan Proses Import Database ke Cloud SQL
 
-Perintahkan GCP Cloud SQL untuk mengimpor file SQL dari bucket storage ke database `presensi_db1`:
+Perintahkan GCP Cloud SQL untuk mengimpor file SQL dari bucket storage ke database `absensi_smk_alhafidz`:
 
 ```bash
+# Buat bagian ini presensi-db-import-876 diganti dengan nama bucket yang telah dibuat (id project nya yang ini: project-876bbc01-98af-4d8d-9e1) bisa di ganti disesuaikan dengan proejct yang di gunakan dan sesuai dengan id project bucket yang dibuat)
+
 gcloud sql import sql presensi-db-gcp gs://presensi-db-import-876/absensi_smk_alhafidz.sql \
-    --database=presensi_db1 \
+    --database=absensi_smk_alhafidz \
     --project=project-876bbc01-98af-4d8d-9e1 \
     --quiet
 ```
@@ -228,6 +231,7 @@ _Tunggu hingga proses selesai. Jika berhasil, akan muncul konfirmasi status kebe
 Setelah data terimport, hapus bucket sementara agar tidak menambah biaya storage:
 
 ```bash
+# Buat bagian ini presensi-db-import-876 diganti dengan nama bucket yang telah dibuat
 gsutil rm -r gs://presensi-db-import-876/
 ```
 
@@ -236,7 +240,8 @@ gsutil rm -r gs://presensi-db-import-876/
 Untuk memastikan tabel dan data siswa sudah masuk ke database, hubungkan Cloud Shell Anda ke database:
 
 ```bash
-gcloud sql connect presensi-db-gcp --user=root --database=presensi_db1
+
+gcloud sql connect presensi-db-gcp --user=root --database=absensi_smk_alhafidz
 ```
 
 - Terminal akan meminta password MySQL. Masukkan password database Anda (Default: `Wnakmi42GCP` atau password baru yang sudah Anda ubah).\*
@@ -366,6 +371,7 @@ Sebelum menghapus database, amankan data absensi terbaru dengan mengekspornya ke
 
 ```bash
 # Buat bucket backup final
+
 gsutil mb -p project-876bbc01-98af-4d8d-9e1 -c standard -l asia-southeast2 gs://presensi-final-backup-876/
 
 # Ekspor database ke bucket

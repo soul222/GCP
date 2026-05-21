@@ -12,8 +12,8 @@ set -e  # Berhenti otomatis jika ada error
 PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
 REGION="asia-southeast2"
 DB_INSTANCE="presensi-db-gcp"
-DB_NAME="absensi_smk_alhafidz"
-DB_PASSWORD="Wnakmi42GCP"
+DB_NAME="absensi_smk_alhafidz" # Jika kondisinya ingin mengimport file sql maka namanya harus sama dengan file sql yang akan diimport
+DB_PASSWORD="Wnakmi42GCP" # diubah jika sesuai kebutuhan dan harus sama dengan password  di setup-gcp.sh
 
 echo "============================================"
 echo " SETUP AWAL GCP - SMK AL HAFIDZ"
