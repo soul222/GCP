@@ -161,6 +161,18 @@ Ikuti langkah-langkah berikut secara berurutan untuk meluncurkan aplikasi Anda d
     git clone https://github.com/soul222/GCP.git
     cd GCP
     ```
+    ```
+    sudo apt-get install -y php8.3-intl php8.3-zip
+    ```
+    ```
+    composer install --ignore-platform-req=ext-intl --ignore-platform-req=ext-zip
+    ```
+    ```
+    npm install
+    ```
+    ```
+    npm run build
+    ```
 
 ---
 
