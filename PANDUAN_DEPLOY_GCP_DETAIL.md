@@ -84,7 +84,7 @@ Demi keamanan sistem, Anda **sangat disarankan** untuk mengubah password bawaan 
 | **DB_PASSWORD** (Pembuatan DB) | `setup-gcp.sh` baris `16` | `Wnakmi42GCP` | Ubah nilai variabel `DB_PASSWORD` sebelum menjalankan script setup. |
 | **DB_PASSWORD** (Koneksi Aplikasi) | `app.yaml` baris `30` | `Wnakmi42GCP` | **PENTING:** Harus disamakan persis dengan password di `setup-gcp.sh`. |
 | **DB_DATABASE** (Nama Database) | `setup-gcp.sh` baris `15` & `app.yaml` baris `29` | `absensi_smk_alhafidz` | Nama database MySQL. Harus sama di kedua file. |
-| **DB_INSTANCE** (Nama Server DB) | `setup-gcp.sh` baris `14` | `presensi-db-gcp` | Nama instance Cloud SQL. Harus sama dengan yang ada di `app.yaml` bagian `beta_settings`. |
+| **DB_INSTANCE** (Nama Server DB) | `setup-gcp.sh` baris `14` | `sintia-db-gcp` | Nama instance Cloud SQL. Harus sama dengan yang ada di `app.yaml` bagian `beta_settings`. |
 | **APP_KEY** (Kunci Laravel) | `app.yaml` baris `23` | `base64:45CldhQZf7Dzc...` | Kunci enkripsi Laravel. Bisa digenerate baru: `php artisan key:generate --show`. |
 | **APP_URL** (Alamat Website) | `app.yaml` baris `22` | `https://project-876bbc01-98af-4d8d-9e1.et.r.appspot.com` | URL default App Engine. Ganti jika menggunakan domain custom nanti. |
 
@@ -198,7 +198,7 @@ gsutil cp database/absensi_smk_alhafidz.sql gs://presensi-db-import-876/
 
 #### 3. Jalankan Proses Import Database ke Cloud SQL
 ```bash
-gcloud sql import sql presensi-db-gcp gs://presensi-db-import-876/absensi_smk_alhafidz.sql \
+gcloud sql import sql sintia-db-gcp gs://presensi-db-import-876/absensi_smk_alhafidz.sql \
     --database=absensi_smk_alhafidz \
     --project=project-876bbc01-98af-4d8d-9e1 \
     --quiet
@@ -212,7 +212,7 @@ gsutil rm -r gs://presensi-db-import-876/
 
 #### 5. Verifikasi Keberhasilan Import Data
 ```bash
-gcloud sql connect presensi-db-gcp --user=root
+gcloud sql connect sintia-db-gcp --user=root
 ```
 Masukkan password database (default: `Wnakmi42GCP`), lalu ketik perintah berikut di dalam terminal MySQL:
 ```sql
@@ -313,7 +313,7 @@ gcloud app logs read --limit=50 --project=project-876bbc01-98af-4d8d-9e1
 gsutil mb -p project-876bbc01-98af-4d8d-9e1 -c standard -l asia-southeast2 gs://presensi-final-backup-876/
 
 # Ekspor database ke bucket
-gcloud sql export sql presensi-db-gcp gs://presensi-final-backup-876/backup_akhir_tugas_akhir.sql \
+gcloud sql export sql sintia-db-gcp gs://presensi-final-backup-876/backup_akhir_tugas_akhir.sql \
     --database=absensi_smk_alhafidz \
     --project=project-876bbc01-98af-4d8d-9e1
 ```
@@ -331,7 +331,7 @@ gcloud app versions stop $(gcloud app versions list --format="value(version.id)"
 ### 3. Hapus Instance Cloud SQL (MySQL)
 Hapus instance database MySQL (komponen ini memakan biaya harian paling besar):
 ```bash
-gcloud sql instances delete presensi-db-gcp \
+gcloud sql instances delete sintia-db-gcp \
     --project=project-876bbc01-98af-4d8d-9e1 \
     --quiet
 ```
@@ -359,7 +359,7 @@ Ini akan **otomatis menghapus semua resource** termasuk App Engine, Cloud SQL, d
 ### ❌ Error 1: `500 | Server Error` saat membuka website
 * **Penyebab:** Umumnya aplikasi gagal terhubung ke database MySQL.
 * **Solusi:**
-  1. Pastikan `DB_SOCKET` di `app.yaml` sudah benar: `/cloudsql/project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp`
+  1. Pastikan `DB_SOCKET` di `app.yaml` sudah benar: `/cloudsql/project-876bbc01-98af-4d8d-9e1:asia-southeast2:sintia-db-gcp`
   2. Pastikan `DB_PASSWORD` di `app.yaml` sama dengan password di `setup-gcp.sh`.
   3. Pastikan `beta_settings.cloud_sql_instances` di `app.yaml` sudah sesuai.
   4. Cek log: `gcloud app logs tail -s default`
@@ -367,7 +367,7 @@ Ini akan **otomatis menghapus semua resource** termasuk App Engine, Cloud SQL, d
 ### ❌ Error 2: `SQLSTATE[HY000] [2002] No such file or directory`
 * **Penyebab:** Unix Socket koneksi Cloud SQL belum terkonfigurasi dengan benar.
 * **Solusi:**
-  * Pastikan `beta_settings.cloud_sql_instances` di `app.yaml` terisi: `project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp`
+  * Pastikan `beta_settings.cloud_sql_instances` di `app.yaml` terisi: `project-876bbc01-98af-4d8d-9e1:asia-southeast2:sintia-db-gcp`
   * Pastikan `DB_SOCKET` (bukan `DB_HOST`) digunakan di `app.yaml`.
 
 ### ❌ Error 3: Aset web (CSS/JS) rusak atau link menu tidak bekerja
@@ -399,10 +399,10 @@ Ini akan **otomatis menghapus semua resource** termasuk App Engine, Cloud SQL, d
 > gcloud app versions stop [VERSION_ID] --service=default --project=project-876bbc01-98af-4d8d-9e1
 > 
 > # Matikan Cloud SQL
-> gcloud sql instances patch presensi-db-gcp --activation-policy=NEVER
+> gcloud sql instances patch sintia-db-gcp --activation-policy=NEVER
 > 
 > # Hidupkan kembali saat dibutuhkan
-> gcloud sql instances patch presensi-db-gcp --activation-policy=ALWAYS
+> gcloud sql instances patch sintia-db-gcp --activation-policy=ALWAYS
 > ```
 
 ---
