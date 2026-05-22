@@ -37,8 +37,8 @@ fi
 
 # Install PHP dependencies (production only)
 if [ -f "composer.json" ]; then
-    composer install --no-dev --optimize-autoloader --no-interaction --no-progress 2>/dev/null || \
-    composer install --no-interaction --no-progress
+    composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-interaction --no-progress 2>/dev/null || \
+    composer install --ignore-platform-reqs --no-interaction --no-progress
     echo "     Composer install OK"
 fi
 
