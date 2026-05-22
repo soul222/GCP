@@ -1,0 +1,50 @@
+# File yang tidak perlu di-upload ke Google App Engine
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment (JANGAN pernah upload ke cloud!)
+.env
+.env.example
+.env.local
+
+# Node / NPM (hasil build sudah ada di public/build)
+node_modules/
+
+# Storage logs (bukan data persistent)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Development files
+.editorconfig
+.phpunit.cache
+phpunit.xml
+tests/
+
+# Monitoring config (hanya untuk lokal)
+monitoring/
+
+# Dokumentasi
+*.md
+*.pdf
+
+# Vite dev files (sudah di-build sebelum deploy)
+vite.config.js
+postcss.config.js
+tailwind.config.js
+
+# Docker files (tidak dipakai oleh App Engine Standard)
+Dockerfile
+.dockerignore
+gcp-config/
+
+# Script deploy (tidak perlu di-upload ke App Engine)
+setup-gcp.sh
+setup-gcp.ps1
+deploy-gcp.sh
+deploy-gcp.ps1
+error.pdf

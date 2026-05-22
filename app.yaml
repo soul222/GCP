@@ -1,0 +1,66 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Google App Engine Standard — Konfigurasi Deployment Laravel 12 + Filament v5
+# SMK Al Hafidz — Sistem Informasi Absensi
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# INSTRUKSI:
+# 1. Pastikan semua nilai env_variables sudah benar
+# 2. Jalankan di Cloud Shell: gcloud app deploy app.yaml --quiet
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+runtime: php82
+
+# ── Environment Variables ─────────────────────────────────────────────────
+env_variables:
+  # Laravel Core
+  APP_NAME: "Absensi SMK Al Hafidz"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "https://project-876bbc01-98af-4d8d-9e1.et.r.appspot.com"
+  APP_KEY: "base64:45CldhQZf7DzcW9RKBOP6ZAy3pNfKD8XueIAhDjoAnM="
+
+  # Database — via Cloud SQL Unix Socket (BUKAN IP address)
+  DB_CONNECTION: "mysql"
+  DB_SOCKET: "/cloudsql/project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp"
+  DB_DATABASE: "absensi_smk_alhafidz"
+  DB_USERNAME: "root"
+  DB_PASSWORD: "Wnakmi42GCP"
+
+  # Session, Cache, Queue — pakai database
+  SESSION_DRIVER: "database"
+  SESSION_LIFETIME: "120"
+  CACHE_STORE: "database"
+  QUEUE_CONNECTION: "database"
+
+  # Session domain — penting untuk Filament auth
+  SESSION_DOMAIN: "project-876bbc01-98af-4d8d-9e1.et.r.appspot.com"
+
+  # Filesystem
+  FILESYSTEM_DISK: "local"
+
+  # Logging ke stderr (tampil di GCP Cloud Logging)
+  LOG_CHANNEL: "stderr"
+  LOG_LEVEL: "error"
+
+  # Prometheus monitoring — izinkan semua IP untuk scraping
+  PROMETHEUS_ALLOWED_IPS: "*"
+
+  # Mail — log saja untuk production awal
+  MAIL_MAILER: "log"
+
+# ── Cloud SQL Connection ──────────────────────────────────────────────────
+beta_settings:
+  cloud_sql_instances: "project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp"
+
+# ── Routing — semua request → Laravel ────────────────────────────────────
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+# ── Scaling ──────────────────────────────────────────────────────────────
+automatic_scaling:
+  min_instances: 0
+  max_instances: 3
+  target_cpu_utilization: 0.65

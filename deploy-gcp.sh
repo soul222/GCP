@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# DEPLOY KE GOOGLE CLOUD RUN via GCP Cloud Shell
+# DEPLOY KE GOOGLE APP ENGINE via GCP Cloud Shell
 # Sistem Informasi Absensi SMK Al Hafidz
 # =============================================================================
 # Cara pakai di GCP Cloud Shell:
@@ -9,92 +9,57 @@
 
 set -e
 
-# ── Konfigurasi (sesuaikan jika perlu) ──────────────────────────────────────
+# ── Konfigurasi ─────────────────────────────────────────────────────────────
 PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
-REGION="asia-southeast2"
-SERVICE_NAME="presensi-alhafidz"
-DB_INSTANCE="presensi-db-gcp"
-DB_NAME="absensi_smk_alhafidz" # Jika kondisinya ingin mengimport file sql maka namanya harus sama dengan file sql yang akan diimport
-DB_USER="root"
-DB_PASSWORD="Wnakmi42GCP" # diubah jika sesuai kebutuhan dan harus sama dengan password  di setup-gcp.sh
-APP_URL="https://presensi-alhafidz-placeholder.a.run.app"
-APP_KEY="base64:45CldhQZf7DzcW9RKBOP6ZAy3pNfKD8XueIAhDjoAnM="
 # ────────────────────────────────────────────────────────────────────────────
 
 echo "============================================"
-echo " DEPLOY GCP CLOUD RUN - SMK AL HAFIDZ"
+echo " DEPLOY GCP APP ENGINE - SMK AL HAFIDZ"
 echo "============================================"
 
 # 1. Set project
 echo ""
-echo "[1/5] Set project GCP..."
+echo "[1/4] Set project GCP..."
 gcloud config set project $PROJECT_ID
 
-# 2. Ambil IP Cloud SQL
+# 2. Install dependencies & build aset frontend
 echo ""
-echo "[2/5] Mengambil IP Cloud SQL..."
-DB_HOST=$(gcloud sql instances describe $DB_INSTANCE \
-    --project=$PROJECT_ID \
-    --format="value(ipAddresses[0].ipAddress)" 2>/dev/null || echo "")
+echo "[2/4] Menginstall dependencies dan build aset frontend..."
 
-if [ -z "$DB_HOST" ]; then
-    echo "     ERROR: Cloud SQL belum dibuat!"
-    echo "     Jalankan dahulu: ./setup-gcp.sh"
-    exit 1
+# Install Node.js dependencies dan build CSS/JS
+if [ -f "package.json" ]; then
+    npm install --prefer-offline 2>/dev/null || npm install
+    npm run build
+    echo "     Frontend build OK"
+else
+    echo "     SKIP: package.json tidak ditemukan"
 fi
-echo "     DB_HOST = $DB_HOST"
 
-# 3. Izinkan Cloud SQL menerima koneksi dari Cloud Run (0.0.0.0/0)
-echo ""
-echo "[3/5] Mengizinkan akses dari Cloud Run ke Cloud SQL..."
-gcloud sql instances patch $DB_INSTANCE \
-    --authorized-networks=0.0.0.0/0 \
-    --project=$PROJECT_ID || true
-echo "     OK"
+# Install PHP dependencies (production only)
+if [ -f "composer.json" ]; then
+    composer install --no-dev --optimize-autoloader --no-interaction --no-progress 2>/dev/null || \
+    composer install --no-interaction --no-progress
+    echo "     Composer install OK"
+fi
 
-# 4. Build & Deploy ke Cloud Run
+# 3. Deploy ke App Engine
 echo ""
-echo "[4/5] Deploying ke Cloud Run... (proses ini 5-10 menit)"
-gcloud run deploy $SERVICE_NAME \
-    --source . \
-    --region $REGION \
-    --platform managed \
-    --allow-unauthenticated \
-    --memory 512Mi \
-    --cpu 1 \
-    --min-instances 0 \
-    --max-instances 3 \
-    --project $PROJECT_ID \
-    --set-env-vars "\
-APP_ENV=production,\
-APP_DEBUG=false,\
-APP_KEY=$APP_KEY,\
-APP_URL=$APP_URL,\
-DB_CONNECTION=mysql,\
-DB_HOST=$DB_HOST,\
-DB_PORT=3306,\
-DB_DATABASE=$DB_NAME,\
-DB_USERNAME=$DB_USER,\
-DB_PASSWORD=$DB_PASSWORD,\
-SESSION_DRIVER=database,\
-CACHE_STORE=database,\
-QUEUE_CONNECTION=database,\
-PROMETHEUS_ALLOWED_IPS=*"
+echo "[3/4] Deploying ke App Engine... (proses ini 5-10 menit)"
+gcloud app deploy app.yaml \
+    --quiet \
+    --project=$PROJECT_ID
 
-# 5. Ambil URL hasil deploy
+# 4. Ambil URL hasil deploy
 echo ""
-echo "[5/5] Mengambil URL deployment..."
-SERVICE_URL=$(gcloud run services describe $SERVICE_NAME \
-    --region $REGION \
-    --project $PROJECT_ID \
-    --format="value(status.url)")
+echo "[4/4] Mengambil URL deployment..."
+SERVICE_URL=$(gcloud app browse --no-launch-browser --project=$PROJECT_ID 2>&1 | tail -1)
 
 echo ""
 echo "============================================"
 echo " DEPLOY BERHASIL!"
-echo " URL GCP  : $SERVICE_URL"
-echo " Domain   : $APP_URL"
+echo " URL App Engine : https://$PROJECT_ID.et.r.appspot.com"
 echo "============================================"
 echo ""
-echo "[INFO] Update CNAME Cloudflare 'dashboard' ke:"
-echo "  ${SERVICE_URL#https://}"
+echo "[INFO] Buka URL di atas di browser untuk mengakses aplikasi."
+echo "[INFO] Cek log jika ada error:"
+echo "  gcloud app logs tail -s default --project=$PROJECT_ID"
