@@ -10,6 +10,7 @@
 set -e  # Berhenti otomatis jika ada error
 
 PROJECT_ID="project-876bbc01-98af-4d8d-9e1"
+PROJECT_NUMBER="278327720815"
 REGION="asia-southeast2"
 DB_INSTANCE="presensi-db-gcp"
 DB_NAME="absensi_smk_alhafidz"
@@ -26,22 +27,37 @@ gcloud config set project $PROJECT_ID
 
 # 2. Aktifkan layanan yang diperlukan untuk App Engine
 echo ""
-echo "[2/6] Mengaktifkan layanan GCP..."
+echo "[2/7] Mengaktifkan layanan GCP..."
 gcloud services enable \
     appengine.googleapis.com \
     sqladmin.googleapis.com \
-    cloudbuild.googleapis.com
+    cloudbuild.googleapis.com \
+    artifactregistry.googleapis.com
 echo "     OK"
 
 # 3. Inisialisasi App Engine di region Jakarta
 echo ""
-echo "[3/6] Inisialisasi App Engine di region $REGION..."
+echo "[3/7] Inisialisasi App Engine di region $REGION..."
 gcloud app create --region=$REGION 2>/dev/null || echo "     App Engine sudah diinisialisasi sebelumnya."
 echo "     OK"
 
-# 4. Buat Cloud SQL
+# 4. Berikan izin IAM ke Service Account Cloud Build
 echo ""
-echo "[4/6] Membuat Cloud SQL (db-f1-micro)... (~5-10 menit)"
+echo "[4/7] Memberikan izin IAM ke Cloud Build service account..."
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/artifactregistry.reader" --quiet
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/storage.admin" --quiet
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" \
+    --role="roles/storage.admin" --quiet
+echo "     OK"
+
+# 5. Buat Cloud SQL
+echo ""
+echo "[5/7] Membuat Cloud SQL (db-f1-micro)... (~5-10 menit)"
 gcloud sql instances create $DB_INSTANCE \
     --database-version=MYSQL_8_0 \
     --tier=db-f1-micro \
@@ -51,15 +67,15 @@ gcloud sql instances create $DB_INSTANCE \
     --no-backup
 echo "     OK"
 
-# 5. Buat database
+# 6. Buat database
 echo ""
-echo "[5/6] Membuat database $DB_NAME..."
+echo "[6/7] Membuat database $DB_NAME..."
 gcloud sql databases create $DB_NAME --instance=$DB_INSTANCE
 echo "     OK"
 
-# 6. Tampilkan info koneksi
+# 7. Tampilkan info koneksi
 echo ""
-echo "[6/6] Informasi Koneksi Database:"
+echo "[7/7] Informasi Koneksi Database:"
 DB_IP=$(gcloud sql instances describe $DB_INSTANCE \
     --format="value(ipAddresses[0].ipAddress)")
 echo "     DB_HOST (IP)     = $DB_IP"
