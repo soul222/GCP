@@ -41,9 +41,9 @@ echo "[3/7] Inisialisasi App Engine di region $REGION..."
 gcloud app create --region=$REGION 2>/dev/null || echo "     App Engine sudah diinisialisasi sebelumnya."
 echo "     OK"
 
-# 4. Berikan izin IAM ke Service Account Cloud Build
+# 4. Berikan izin IAM ke Service Account Cloud Build & App Engine
 echo ""
-echo "[4/7] Memberikan izin IAM ke Cloud Build service account..."
+echo "[4/7] Memberikan izin IAM ke Cloud Build & App Engine service account..."
 gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/artifactregistry.reader" --quiet
@@ -53,6 +53,12 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" \
     --role="roles/storage.admin" --quiet
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" \
+    --role="roles/artifactregistry.admin" --quiet
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com" \
+    --role="roles/logging.logWriter" --quiet
 echo "     OK"
 
 # 5. Buat Cloud SQL
