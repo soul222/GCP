@@ -13,6 +13,12 @@
 # Node / NPM (hasil build sudah ada di public/build)
 node_modules/
 
+# PHP Composer dependencies (akan diinstall otomatis di server App Engine)
+vendor/
+
+# Storage symlink
+public/storage
+
 # Storage logs (bukan data persistent)
 storage/logs/*
 storage/framework/cache/*
