@@ -54,9 +54,6 @@ env_variables:
 beta_settings:
   cloud_sql_instances: "project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp"
 
-# ── Document Root ────────────────────────────────────────────────────────
-document_root: "public"
-
 # ── Routing — semua request → Laravel ────────────────────────────────────
 handlers:
   # Serve Vite build assets directly
