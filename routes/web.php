@@ -9,6 +9,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Temporary route for GCP App Engine migrations
+Route::get('/migrate-db-force', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return 'Migrasi Database Berhasil: <br><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 // ── Prometheus Metrics Endpoint ───────────────────────────────────────────
 // Dilindungi oleh PrometheusIpWhitelist middleware.
 // Hanya IP yang terdaftar di PROMETHEUS_ALLOWED_IPS (.env) yang bisa akses.
