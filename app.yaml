@@ -36,8 +36,9 @@ env_variables:
   # Session domain — penting untuk Filament auth
   SESSION_DOMAIN: "project-876bbc01-98af-4d8d-9e1.et.r.appspot.com"
 
-  # Filesystem
+  # Filesystem — pakai local (GCP App Engine baca-saja, upload ke GCS jika perlu)
   FILESYSTEM_DISK: "local"
+  VIEW_COMPILED_PATH: "/tmp"
 
   # Logging ke stderr (tampil di GCP Cloud Logging)
   LOG_CHANNEL: "stderr"
