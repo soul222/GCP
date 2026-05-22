@@ -212,10 +212,11 @@ gsutil rm -r gs://presensi-db-import-876/
 
 #### 5. Verifikasi Keberhasilan Import Data
 ```bash
-gcloud sql connect presensi-db-gcp --user=root --database=absensi_smk_alhafidz
+gcloud sql connect presensi-db-gcp --user=root
 ```
-Masukkan password database (default: `Wnakmi42GCP`), lalu ketik:
+Masukkan password database (default: `Wnakmi42GCP`), lalu ketik perintah berikut di dalam terminal MySQL:
 ```sql
+USE absensi_smk_alhafidz;
 SHOW TABLES;
 EXIT;
 ```
