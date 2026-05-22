@@ -12,7 +12,7 @@ param(
     [string]$ProjectId    = "presensi-alhafidz",
     [string]$Region       = "asia-southeast2",
     [string]$ServiceName  = "presensi-alhafidz",
-    [string]$DbInstance   = "presensi-db-gcp",
+    [string]$DbInstance   = "sintia-db-gcp",
     [string]$DbName       = "absensi_smk_alhafidz", # Jika kondisinya ingin mengimport file sql maka namanya harus sama dengan file sql yang akan diimport
     [string]$DbUser       = "root",
     [string]$DbPassword   = "Wnakmi42GCP", # diubah jika sesuai kebutuhan dan harus sama dengan password  di setup-gcp.sh

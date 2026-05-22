@@ -22,7 +22,7 @@ env_variables:
 
   # Database — via Cloud SQL Unix Socket (BUKAN IP address)
   DB_CONNECTION: "mysql"
-  DB_SOCKET: "/cloudsql/project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp"
+  DB_SOCKET: "/cloudsql/project-876bbc01-98af-4d8d-9e1:asia-southeast2:sintia-db-gcp"
   DB_DATABASE: "absensi_smk_alhafidz"
   DB_USERNAME: "root"
   DB_PASSWORD: "Wnakmi42GCP"
@@ -52,7 +52,7 @@ env_variables:
 
 # ── Cloud SQL Connection ──────────────────────────────────────────────────
 beta_settings:
-  cloud_sql_instances: "project-876bbc01-98af-4d8d-9e1:asia-southeast2:presensi-db-gcp"
+  cloud_sql_instances: "project-876bbc01-98af-4d8d-9e1:asia-southeast2:sintia-db-gcp"
 
 # ── Routing — semua request → Laravel ────────────────────────────────────
 handlers:
